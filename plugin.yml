@@ -1,0 +1,11 @@
+name: OreRun
+version: 1.0
+author: kinj14
+main: fr.kinj14.orerun.Main
+commands:
+  orerun.canchangeteam:
+    description: Used to activate/deactivate team changes.
+    permission: orerun.canchangeteam
+  orerun.restartgame:
+    description: Allows you to restart the game but not the map.
+    permission: orerun.restartgame

@@ -1,0 +1,54 @@
+General:
+  WordName: "orerun"
+  MinPlayers: 1
+  ChatFormat: "{DisplayName}: {Message}"
+  FriendlyFire: false
+  teams:
+    red:
+      name: "Red"
+      color: "&c"
+      item: "minecraft:banner/1"
+      MaxPlayers: 2
+      spawns: -3.6, 68, 42.5, 88.5f, 1.3f
+    blue:
+      name: "Blue"
+      color: "&9"
+      item: "minecraft:banner/12"
+      MaxPlayers: 2
+      spawns: -71.441, 89, 50.6, -165.4f, 3.7f
+    yellow:
+      name: "Yellow"
+      color: "&e"
+      item: "minecraft:banner/11"
+      MaxPlayers: 2
+      spawns: -56.540, 76, 143.5, 176.6f, 3.4f
+
+Locations:
+  Lobby: 0, 104, 1, -93f, 2.6f
+  GameCenter: 0, 0, 0, 0f, 0f
+  DepositChest: -33.437, 81, -53.41, -30.7f, -17.5f
+
+Timers:
+  StartTime: 10
+  GameTime: 60
+  #Time (Based: GameTime), Remove Block, SmoothDelay
+  Steps:
+    - "45, 30, 3"
+    - "30, 20, 5"
+    - "15, 15, 8"
+
+WorldBorder:
+  LobbySize: 300
+  GameSize: 300
+  DamageAmount: 0.5
+  DamageBuffer: 1
+  WarningBlock: 15
+  
+Points:
+  Items:
+  - "DIRT:1"
+
+#Leave original so that the developer can know the bugs
+Discord:
+  playerReportWebhook: "https://discordapp.com/api/webhooks/706787687658684488/xBnp46H7zn66TA5jBHZUKGEH4RmWv62LqzY6ujkijWWPTdA3Y64m-0r5VuOksneF4CnJ"
+  bugReportWebhook: "https://discordapp.com/api/webhooks/706787801534038036/3yxic-InkEv_TEJBRU6IFtTGoCuPST-GvxZlWCuleMJTgnFDqB0yqnmI9DiZvMW3NoWP"
