@@ -3,9 +3,24 @@ version: 1.0
 author: kinj14
 main: fr.kinj14.orerun.Main
 commands:
-  orerun.canchangeteam:
+  canchangeteam:
     description: Used to activate/deactivate team changes.
     permission: orerun.canchangeteam
-  orerun.restartgame:
+  restartgame:
     description: Allows you to restart the game but not the map.
     permission: orerun.restartgame
+  bug:
+    description: Report a bug on the OreRun plugin.
+  report:
+    description: Report a player (/report PlayerName Description)
+  lobby:
+    description: Return to lobby
+  gm:
+    description: Gamemode command
+    permission: orerun.gamemode
+  healall:
+    description: heal everyone
+    permission: orerun.healall
+  heal:
+    description: You heal of yourself
+    permission: orerun.heal

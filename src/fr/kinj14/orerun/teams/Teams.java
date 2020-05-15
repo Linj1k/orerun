@@ -47,8 +47,8 @@ public class Teams {
 	public void addPlayer(Player player) {
 		if(!HavePlayer(player) && getTeamPlayersCount() < getMaxPlayers()) {
 			players.add(player);
-			player.setPlayerListName("§7["+tag+name+"§7]§r"+player.getName());
-			player.setDisplayName("§7["+tag+name+"§7]§r"+player.getName());
+			player.setPlayerListName(tag+player.getName()+"§r");
+			player.setDisplayName(tag+player.getName()+"§r");
 		}
 	}
 	

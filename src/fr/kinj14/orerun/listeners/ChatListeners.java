@@ -2,6 +2,7 @@ package fr.kinj14.orerun.listeners;
 
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
@@ -45,17 +46,22 @@ public class ChatListeners implements Listener {
 		}
 		
 		if(event.getMessage().contains("!")) {
-			message = "§r[§7Global§r]§8|"+message.replace("!", "");
-			for(Player p : main.getPlayers()) {
+			message = "§r[§7Global§r]"+message.replace("!", "");
+			for(Player p : Bukkit.getServer().getOnlinePlayers()) {
 				p.sendMessage(message);
 			}
 		} else {
 			TeamsManager tm = main.getTM();
 			Teams playerTeam = tm.searchPlayerTeam(player);
 			if(tm != null && playerTeam != null) {
-				message = "§r["+playerTeam.getTag()+"Team§r]§8|§r"+message;
+				message = "§r["+playerTeam.getTag()+"Team§r]"+message;
 				for(Player pteam : playerTeam.getTeamPlayers()) {
 					pteam.sendMessage(message);
+				}
+			} else {
+				message = "§r[§7Global§r]"+message.replace("!", "");
+				for(Player p : Bukkit.getServer().getOnlinePlayers()) {
+					p.sendMessage(message);
 				}
 			}
 		}

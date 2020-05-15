@@ -1,4 +1,5 @@
 package fr.kinj14.orerun.Tasks;
+import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -17,7 +18,8 @@ public class Finish extends BukkitRunnable {
 	@Override
 	public void run() {
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			scoreb.getValue().setLine(1, "Time : "+(timer-5)+"s");
+			String timerdate = new SimpleDateFormat("mm:ss").format(timer*1000);
+			scoreb.getValue().setLine(1, "Finish : "+timerdate);
 		}
 		
 		for(Player pls : main.getPlayers()) {

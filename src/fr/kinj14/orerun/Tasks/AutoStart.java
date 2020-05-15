@@ -1,5 +1,6 @@
 package fr.kinj14.orerun.Tasks;
 
+import java.text.SimpleDateFormat;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -34,7 +35,8 @@ public class AutoStart extends BukkitRunnable {
 		}
 		
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			scoreb.getValue().setLine(1, "Time : "+timer+"s");
+			String timerdate = new SimpleDateFormat("mm:ss").format(timer*1000);
+			scoreb.getValue().setLine(1, "Start : "+timerdate);
 		}
 		
 		

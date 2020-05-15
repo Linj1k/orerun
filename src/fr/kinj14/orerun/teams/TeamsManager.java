@@ -32,7 +32,7 @@ public class TeamsManager {
 
 	public void addPlayer(Player player, Teams team) {
 		if(team.getTeamPlayersCount() >= team.getMaxPlayers()) {
-			player.sendMessage("§7[§eOreRun§7]§6 This "+team.getTag()+"team §6is already full!");
+			player.sendMessage("Â§7[Â§eOreRunÂ§7]Â§6 This "+team.getTag()+"team Â§6is already full!");
 			return;
 		}
 		for(Teams ateam : main.getTeams()) {
@@ -42,18 +42,20 @@ public class TeamsManager {
 		}
 		if(!team.HavePlayer(player)) {
 			team.addPlayer(player);
-			Bukkit.broadcastMessage("§7[§eOreRun§7]§6 "+ player.getName() +" join "+ team.getTag() + team.getName() +" Team §6!");
+			Bukkit.broadcastMessage("Â§7[Â§eOreRunÂ§7]Â§6 "+ player.getName() +" join "+ team.getTag() + team.getName() +" Team Â§6!");
 		}
 		
 		updateScoreBoard(player);
+		main.PrepareGame();
 	}
 	
 	public void removePlayer(Player player, Teams team) {
 		if(team.HavePlayer(player)) {
 			team.removePlayer(player);
-			Bukkit.broadcastMessage("§7[§eOreRun§7]§6 "+ player.getName() +" leave "+ team.getTag() + team.getName() +" Team §6!");
+			Bukkit.broadcastMessage("Â§7[Â§eOreRunÂ§7]Â§6 "+ player.getName() +" leave "+ team.getTag() + team.getName() +" Team Â§6!");
 		}
 		updateScoreBoard(player);
+		main.PrepareGame();
 	}
 	
 	public Teams randomTeam(Player player) {
@@ -70,8 +72,43 @@ public class TeamsManager {
 	
 	public void updateScoreBoard(Player player) {
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			Teams scorebTeam = main.getTM().searchPlayerTeam(scoreb.getKey());
-			scoreb.getValue().setLine(5, "Team : "+scorebTeam.getTag()+scorebTeam.getName());
+			if(scoreb.getKey() != null && scoreb.getValue() != null) {				
+				Teams scorebTeam = main.getTM().searchPlayerTeam(scoreb.getKey());
+				if(scorebTeam != null) {					
+					scoreb.getValue().setLine(5, scorebTeam.getTag()+"â–ˆÂ§rPoints: 0");
+				} else {
+					scoreb.getValue().setLine(5, "Â§rPoints : 0");
+				}
+			}
 		}
+	}
+	
+	public void updateScoreBoardPoint(Player player) {
+		Teams scorebTeam = searchPlayerTeam(player);
+		if(scorebTeam != null) {
+			for(Player pla : scorebTeam.getTeamPlayers()) {
+				if(main.scorebaordMap.containsKey(pla)) {
+					main.scorebaordMap.get(pla).setLine(5, scorebTeam.getTag()+"â–ˆÂ§rPoints: "+(int)scorebTeam.getPoints());
+				}
+			}
+		}
+	}
+	
+	public boolean CheckForStartGameTeam() {
+		int count = 0;
+		for(Teams team : main.getTeams()){
+			if(team.getTeamPlayersCount() > 0) {
+				count = count + 1;
+			}
+		}
+		return count >= main.MinPlayers;
+	}
+	
+	public int GetMaxPlayersTeam() {
+		int count = 0;
+		for(Teams team : main.getTeams()){
+			count = count + team.getMaxPlayers();
+		}
+		return count;
 	}
 }

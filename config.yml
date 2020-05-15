@@ -1,6 +1,6 @@
 General:
   WordName: "orerun"
-  MinPlayers: 1
+  MinPlayers: 2
   ChatFormat: "{DisplayName}: {Message}"
   FriendlyFire: false
   teams:
@@ -26,16 +26,19 @@ General:
 Locations:
   Lobby: 0, 104, 1, -93f, 2.6f
   GameCenter: 0, 0, 0, 0f, 0f
-  DepositChest: -33.437, 81, -53.41, -30.7f, -17.5f
+  DepositChest: 0.442, 85, 3.470, -30.7f, -17.5f
 
 Timers:
-  StartTime: 10
-  GameTime: 60
+  StartTime: 120
+  GameTime: 2400
+  ChestTime: 2350
   #Time (Based: GameTime), Remove Block, SmoothDelay
   Steps:
-    - "45, 30, 3"
-    - "30, 20, 5"
-    - "15, 15, 8"
+    - "600, 65, 5"
+    - "1200, 50, 5"
+    - "1800, 60, 5"
+    - "2100, 45, 10"
+    - "2250, 40, 15"
 
 WorldBorder:
   LobbySize: 300
@@ -46,9 +49,8 @@ WorldBorder:
   
 Points:
   Items:
-  - "DIRT:1"
-
-#Leave original so that the developer can know the bugs
-Discord:
-  playerReportWebhook: "https://discordapp.com/api/webhooks/706787687658684488/xBnp46H7zn66TA5jBHZUKGEH4RmWv62LqzY6ujkijWWPTdA3Y64m-0r5VuOksneF4CnJ"
-  bugReportWebhook: "https://discordapp.com/api/webhooks/706787801534038036/3yxic-InkEv_TEJBRU6IFtTGoCuPST-GvxZlWCuleMJTgnFDqB0yqnmI9DiZvMW3NoWP"
+    - "COAL:30"
+    - "IRON_INGOT:150"
+    - "GOLD_INGOT:200"
+    - "DIAMOND:400"
+    - "EMERALD:550"

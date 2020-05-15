@@ -1,15 +1,19 @@
 package fr.kinj14.orerun.listeners;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
@@ -24,6 +28,7 @@ import fr.kinj14.orerun.utils.GameState;
 
 public class PlayerListeners implements Listener {
 	protected final Main main = Main.getInstance();
+	public Map<Player,Integer> DelayList = new HashMap<>();
 	
 	@EventHandler
 	public void PlayerLogin(PlayerLoginEvent event) {
@@ -47,7 +52,7 @@ public class PlayerListeners implements Listener {
 		event.setJoinMessage("§7[§eOreRun§7]§r "+ player.getName() +"§a joined the game ! <" + main.getCountPlayers()+"/"+Bukkit.getMaxPlayers()+">");
 		
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			scoreb.getValue().setLine(3, "Players : "+main.getCountPlayers()+"/"+Bukkit.getMaxPlayers());
+			scoreb.getValue().setLine(3, "Players : "+String.valueOf(main.getCountPlayers())+"/"+String.valueOf(main.getTM().GetMaxPlayersTeam()));
 		}
 	}
 	
@@ -60,7 +65,7 @@ public class PlayerListeners implements Listener {
 		event.setQuitMessage("§7[§eOreRun§7]§r "+ player.getName() +"§a has left the game ! <" + main.getCountPlayers()+"/"+Bukkit.getMaxPlayers()+">");
 		
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			scoreb.getValue().setLine(3, "Players : "+main.getCountPlayers()+"/"+Bukkit.getMaxPlayers());
+			scoreb.getValue().setLine(3, "Players : "+String.valueOf(main.getCountPlayers())+"/"+String.valueOf(main.getTM().GetMaxPlayersTeam()));
 		}
 	}
 	
@@ -69,7 +74,10 @@ public class PlayerListeners implements Listener {
 		Player player = event.getPlayer();
 		ItemStack item = event.getItem();
 		
-		if(item != null && item.hasItemMeta() && item.getItemMeta().getDisplayName().contains("team")) {
+		if(item != null && item.hasItemMeta() && item.getItemMeta().getDisplayName().contains("team") && !main.isState(GameState.PLAYING)) {
+			Integer Interval = 20;
+			if(CheckDelay(player,Interval)) {event.setCancelled(true);return;}
+			AddDelay(player, Interval);
 			for(Teams team : main.getTeams()) {
 				if (item.equals(team.getIcon())) {
 					if(main.GetCanChangeTeam()) {
@@ -80,6 +88,15 @@ public class PlayerListeners implements Listener {
 					continue;
 				}
 			}
+			event.setCancelled(true);
+			return;
+		}
+		
+		if(item != null && item.hasItemMeta() && item.getItemMeta().getDisplayName().contains("Lobby!") && !main.isState(GameState.PLAYING)) {
+			Integer Interval = 20;
+			if(CheckDelay(player,Interval)) {event.setCancelled(true);return;}
+			AddDelay(player, Interval);
+			player.teleport(main.lobby);
 			event.setCancelled(true);
 			return;
 		}
@@ -95,19 +112,54 @@ public class PlayerListeners implements Listener {
 			
 			if(target != null && target.hasMetadata("deposit")) {
 				ItemStack mainhandItem = player.getInventory().getItemInMainHand();
-				//int mainhandItemAmount = mainhandItem.getAmount();
-				//String mainhandItemType = mainhandItem.getType().name();
-				
-				//ConfigurationSection PointSection = main.cfg.getConfigurationSection("Points");
-				List<String> ItemsCFG = main.cfg.getConfigurationSection("Points").getStringList("Items");
-				for(String s : ItemsCFG) {
-						System.out.println(s.split(":")[0] + " x"+s.split(":")[1]);
+				if(mainhandItem.getType() != Material.AIR) {				
+					double Point = main.getItemPoint(mainhandItem);
+					if(Point != 0) {						
+						int mainhandItemAmount = mainhandItem.getAmount();
+						Point = Point * mainhandItemAmount;
+						
+						System.out.println(Point+" Points ("+item.getType().name()+")");
+						
+						Teams team = main.getTM().searchPlayerTeam(player);
+						if(team != null) {
+							team.addPoints((float)Point);
+							main.getTM().updateScoreBoardPoint(player);
+							player.getInventory().remove(item);
+						}
+					}
 				}
-				
-				System.out.println(ItemsCFG.size() + " "+String.valueOf(main.getItemPoint(mainhandItem))+" Points");
-				
 				event.setCancelled(true);
 			}
+		}
+	}
+	
+	public void AddDelay(Player player, Integer delay) {
+		if(CheckDelay(player,delay)) {return;}
+		DelayList.put(player, delay);
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, new Runnable() {
+            public void run() {
+            	if(DelayList.containsKey(player) && DelayList.containsValue(delay)){
+            		DelayList.remove(player, delay);
+            	}
+            }
+		}, 0L+delay);
+	}
+	
+	public Boolean CheckDelay(Player player, Integer delay) {
+		return DelayList.containsKey(player) && DelayList.containsValue(delay);
+	}
+	
+	@EventHandler
+	public void onInventoryClick(InventoryClickEvent event) {
+		if(!main.isState(GameState.PLAYING)) {	
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerDropItem(PlayerDropItemEvent event) {
+		if(!main.isState(GameState.PLAYING)) {	
+			event.setCancelled(true);
 		}
 	}
 	

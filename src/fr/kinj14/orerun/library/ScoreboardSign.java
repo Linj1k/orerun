@@ -15,6 +15,7 @@ import net.minecraft.server.v1_12_R1.PacketPlayOutScoreboardScore;
 import net.minecraft.server.v1_12_R1.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.v1_12_R1.PlayerConnection;
 
+
 /**
  * @author zyuiop
  * Updated by MrZalTy
@@ -66,6 +67,13 @@ public class ScoreboardSign {
 				getPlayer().sendPacket(team.removeTeam());
 
 		created = false;
+	}
+	
+	public void sdestroy() {
+		getPlayer().sendPacket(createObjectivePacket(1, null));
+		for (VirtualTeam team : lines)
+			if (team != null)
+				getPlayer().sendPacket(team.removeTeam());
 	}
 
 	/**

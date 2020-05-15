@@ -2,13 +2,14 @@ package fr.kinj14.orerun;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -19,18 +20,23 @@ import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import fr.kinj14.orerun.Tasks.AutoStart;
 import fr.kinj14.orerun.Tasks.Finish;
 import fr.kinj14.orerun.Tasks.GameCycle;
 import fr.kinj14.orerun.commands.Commands;
+import fr.kinj14.orerun.library.Report;
 import fr.kinj14.orerun.library.ScoreboardSign;
 import fr.kinj14.orerun.library.Title;
 import fr.kinj14.orerun.listeners.ChatListeners;
@@ -41,6 +47,7 @@ import fr.kinj14.orerun.teams.TeamsManager;
 import fr.kinj14.orerun.utils.GameState;
 import fr.kinj14.orerun.utils.OFireWorks;
 import fr.kinj14.orerun.utils.WorldUtil;
+import net.minecraft.server.v1_12_R1.Item;
 
 public class Main extends JavaPlugin{
 	//Instance
@@ -68,6 +75,8 @@ public class Main extends JavaPlugin{
 	public WorldUtil worldUtils = new WorldUtil();
 	public OFireWorks OFireWorks = new OFireWorks(); 
 	public String worldname;
+	public Logger logger;
+	private String ServerIP;
 	
 	//Team
 	private List<Teams> Teams = new ArrayList<>();
@@ -85,36 +94,16 @@ public class Main extends JavaPlugin{
 		Bukkit.getWorld(worldname).setSpawnLocation(lobby);
 		MinPlayers = cfg.getInt("General.MinPlayers");
 		
-		
 		//Reset GameState
 		setState(GameState.WAITING);
 		
-		//WorldBorder
-		World world = Bukkit.getWorld(worldname);
-		WorldBorder wb = world.getWorldBorder();
-		wb.setCenter(lobby);
-		wb.setSize(cfg.getInt("WorldBorder.LobbySize"));
-		wb.setDamageAmount(cfg.getDouble("WorldBorder.DamageAmount"));
-		wb.setDamageBuffer(cfg.getInt("WorldBorder.DamageBuffer"));
-		wb.setWarningDistance(cfg.getInt("WorldBorder.WarningBlock"));
-		
-		if (instance != null) { // is for reload command
-			instance = this;
-			System.setProperty("OreRunLoaded", "true");
-			// Teams
-			TM = new TeamsManager();
-			loadTeams();
-			
-			Reload();
-			PrepareGame();
-		} else {
-			instance = this;
-			System.setProperty("OreRunLoaded", "true");
+		instance = this;
+		System.setProperty("OreRunLoaded", "true");
 
-			// Teams
-			TM = new TeamsManager();
-			loadTeams();
-		}
+		// Teams
+		TM = new TeamsManager();
+		loadTeams();
+		Reload();
 		
 		//RegisterListeners
 		PluginManager pm = getServer().getPluginManager();
@@ -122,9 +111,29 @@ public class Main extends JavaPlugin{
 		pm.registerEvents(new DamageListeners(), this);
 		pm.registerEvents(new ChatListeners(getServer()), this);
 		
+		logger = Bukkit.getLogger();
+		
 		//Commands
-		getCommand("orerun.canchangeteam").setExecutor(new Commands());
-		getCommand("orerun.restartgame").setExecutor(new Commands());
+		getCommand("canchangeteam").setExecutor(new Commands());
+		getCommand("restartgame").setExecutor(new Commands());
+		getCommand("bug").setExecutor(new Commands());
+		getCommand("report").setExecutor(new Commands());
+		getCommand("lobby").setExecutor(new Commands());
+		getCommand("gm").setExecutor(new Commands());
+		getCommand("heal").setExecutor(new Commands());
+		getCommand("healall").setExecutor(new Commands());
+		setServerIP();
+		
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+            public void run() {
+            	World world = Bukkit.getWorld(worldname);
+            	world.getEntities().clear();
+        		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "time set day");
+        		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doDaylightCycle true");
+        		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule mobGriefing false");
+        		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doMobSpawning false");
+            }
+          }, 100L);
 	}
 	
 	@Override
@@ -132,29 +141,44 @@ public class Main extends JavaPlugin{
 		if(isState(GameState.FINISH)) {			
 			StartRestartWorld();
 		}
+		if(DepositChest != null) {			
+			DepositChest.setType(Material.AIR);
+			DepositChest = null;
+		}
 	}
 	
 	// Game
 	public void PrepareGame() {
-		if(isState(GameState.WAITING) && getCountPlayers() >= MinPlayers) {
+		if(isState(GameState.WAITING) && getCountPlayers() >= MinPlayers && TM.CheckForStartGameTeam()) {
 			//Reset Timers
 			ResetAllTimers();
+			
+			for(Player player : getPlayers()) {
+				if(getTM().searchPlayerTeam(player) == null) {					
+					getTM().addPlayer(player, getTM().randomTeam(player));
+				}
+			}
+			
 			AutoStart start = new AutoStart();
 			setAutoStart(start);
 			start.runTaskTimer(this, 0, 20);
 			setState(GameState.STARTING);
-			Location chestLoc = deserializeConfigLocation("Locations.DepositChest");
-			chestLoc.getBlock().setType(Material.CHEST);
-			chestLoc.getBlock().setMetadata("deposit", new FixedMetadataValue(this, true));
-			DepositChest = chestLoc.getBlock();
 		}
+	}
+	
+	public void createChest() {
+		Location chestLoc = deserializeConfigLocation("Locations.DepositChest");
+		chestLoc.getBlock().setType(Material.CHEST);
+		chestLoc.getBlock().setMetadata("deposit", new FixedMetadataValue(this, true));
+		DepositChest = chestLoc.getBlock();
+		Bukkit.broadcastMessage("Â§7[Â§eOreRunÂ§7]Â§r The chest appeared in X:"+chestLoc.getX()+" Y:"+chestLoc.getY()+" Z:"+chestLoc.getZ()+" !");
 	}
 	
 	public void StartGame() {
 		Location GameCenter = deserializeConfigLocation("Locations.GameCenter");
 		int GameSize = cfg.getInt("WorldBorder.GameSize");
 		
-		Bukkit.broadcastMessage("§7[§eOreRun§7]§r Launching the game !");
+		Bukkit.broadcastMessage("Â§7[Â§eOreRunÂ§7]Â§r Launching the game !");
 		World world = Bukkit.getWorld(worldname);
 		world.setTime(0);
 		world.setThunderDuration(0);
@@ -175,9 +199,16 @@ public class Main extends JavaPlugin{
 		
 		//Reset Timers
 		ResetAllTimers();
+		for(Teams team : Teams) {
+			team.setPoints(0);
+		}
+		removeAllDroppedItems();
 		GameCycle cycle = new GameCycle();
 		setGameCycle(cycle);
 		cycle.runTaskTimer(this, 0, 20); 
+		
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule mobGriefing true");
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "gamerule doMobSpawning true");
 	}
 	
 	public void Reload() {
@@ -187,6 +218,7 @@ public class Main extends JavaPlugin{
 		setState(GameState.WAITING);
 		if(DepositChest != null) {
 			DepositChest.setType(Material.AIR);
+			DepositChest = null;
 		}
 		//Reset WorldBorder
 		WorldBorder wb = Bukkit.getWorld(worldname).getWorldBorder();
@@ -195,18 +227,26 @@ public class Main extends JavaPlugin{
 		wb.setDamageAmount(cfg.getInt("WorldBorder.DamageAmount"));
 		wb.setDamageBuffer(cfg.getInt("WorldBorder.DamageBuffer"));
 		//Reset Scoreboards
-		for(Entry<Player, ScoreboardSign> score : scorebaordMap.entrySet()) {
-			System.out.println(score.getKey().getName());
-			score.getValue().destroy();
+		for(Entry<Player, ScoreboardSign> scoreb : scorebaordMap.entrySet()) {
+			scoreb.getValue().sdestroy();
 		}
 		scorebaordMap.clear();
 		//Reset Players
-		players.clear();
-		for(Player p : Bukkit.getOnlinePlayers()) {
-			players.add(p);
-			PlayerSetup(p);
-			PlayerSetupLobby(p);
+		for(Teams team : Teams) {
+			team.setPoints(0);
+			for(Player player : team.getTeamPlayers()) {
+				team.removePlayer(player);
+			}
 		}
+		players.clear();
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+            public void run() {
+            	for(Player p : Bukkit.getOnlinePlayers()) {
+        			players.add(p);
+        			PlayerSetup(p);
+        		}
+            }
+          }, 50L);
 	}
 	
 	public void ReturnLobby(boolean Force) {
@@ -217,11 +257,12 @@ public class Main extends JavaPlugin{
 
 	public void checkWin() {
 		String msg = null;
+		String msg2 = "Â§eLobby...";
 		if(getCountPlayers() == 0) {
 			msg = "Equality!";
 		}
 		
-		if(getCountPlayers() == 1) {
+		if(getCountPlayers() == 0) {
 			Player winner = players.get(0);
 			msg = winner.getName()+" won !";
 			for(Player player : Bukkit.getOnlinePlayers()) {
@@ -230,12 +271,27 @@ public class Main extends JavaPlugin{
 			OFireWorks.SpawnFireWorks(winner.getLocation());
 		}
 		
-		if(msg != null) {
-			for(Player player : Bukkit.getOnlinePlayers()) {
-				title.sendTitle(player, msg, "§eLobby...", 20);
+		if(msg == null) {
+			Integer winpoint = 0;
+			Teams winteam = null;
+			for(Teams team : Teams) {
+				if(team.getPoints() >= winpoint) {
+					winpoint = (int)team.getPoints();
+					winteam = team;
+				}
 			}
-			
-			
+			if(winteam != null) {
+				msg = winteam.getTag()+winteam.getName()+" won !";
+				msg2 = (int)winteam.getPoints()+" Points";
+				for(Player player : winteam.getTeamPlayers()) {					
+					OFireWorks.SpawnFireWorks(player.getLocation());
+				}
+			} else {
+				msg = "Equality!";
+			}
+		}
+		
+		if(msg != null) {
 			setState(GameState.PREFINISH);
 			ResetAllTimers();
 			Finish finish = new Finish();
@@ -243,8 +299,11 @@ public class Main extends JavaPlugin{
 			finish.runTaskTimer(this, 0, 20); 
 		}
 		
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			title.sendTitle(player, msg, msg2, 60);
+		}
 		//Reset Timers
-		Bukkit.broadcastMessage("§7[§eOreRun§7] "+msg);
+		Bukkit.broadcastMessage("Â§7[Â§eOreRunÂ§7] "+msg);
 		
 		return;
 	}
@@ -276,7 +335,7 @@ public class Main extends JavaPlugin{
 		ConfigurationSection teamsection = cfg.getConfigurationSection("General.teams");
 		for(String team : teamsection.getKeys(false)) {
 			String name = teamsection.getString(team + ".name");
-			String tag = teamsection.getString(team + ".color").replace("&", "§");
+			String tag = teamsection.getString(team + ".color").replace("&", "Â§");
 			String[] Items = teamsection.getString(team + ".item").split("/");
 			String itemid = Items[0].split(":")[1].toUpperCase();
 			Location spawn = deserializeLocation(teamsection.getString(team + ".spawns"));
@@ -327,7 +386,7 @@ public class Main extends JavaPlugin{
 		}
 		
 		player.setGameMode(GameMode.SPECTATOR);
-		player.sendMessage("§7[§eOreRun§7]§r You lose ...");
+		player.sendMessage("Â§7[Â§eOreRunÂ§7]Â§r You lose ...");
 		checkWin();
 	}
 	
@@ -361,18 +420,28 @@ public class Main extends JavaPlugin{
 		}
 		
 		//Scoreboard Setup
-		
-		ScoreboardSign sb = new ScoreboardSign(player, "§eOreRun");
-		sb.create();
-		sb.setLine(0, "§7 ");
-		sb.setLine(1, "Time : 0s");
-		sb.setLine(2, "§9 ");
-		sb.setLine(3, "Players : "+String.valueOf(getCountPlayers())+"/"+String.valueOf(Bukkit.getMaxPlayers()));
-		sb.setLine(4, "§e ");
-		Teams scorebTeam = getTM().searchPlayerTeam(player);
-		if(scorebTeam != null) {			
-			sb.setLine(5, "Team : "+scorebTeam.getTag()+scorebTeam.getName());
+		if(scorebaordMap.containsKey(player)) {
+			ScoreboardSign lastscore = scorebaordMap.get(player);
+			lastscore.sdestroy();
 		}
+		ScoreboardSign sb = new ScoreboardSign(player, "Â§eOreRun");
+		sb.create();
+		sb.setLine(0, "Â§a");
+		String timerdate = new SimpleDateFormat("mm:ss").format(0*1000);
+		sb.setLine(1, "Time : "+timerdate);
+		sb.setLine(2, "Â§e ");
+		sb.setLine(3, "Players : "+String.valueOf(getCountPlayers())+"/"+String.valueOf(getTM().GetMaxPlayersTeam()));
+		sb.setLine(4, "Â§7 ");
+		Teams scorebTeam = getTM().searchPlayerTeam(player);
+		if(scorebTeam != null) {					
+			sb.setLine(5, scorebTeam.getTag()+"â–ˆÂ§rPoints: 0");
+		} else {
+			sb.setLine(5, "Â§rPoints : 0");
+		}
+		sb.setLine(6, "Â§6");
+		sb.setLine(7, "Border : 0");
+		sb.setLine(8, "Â§5");
+		sb.setLine(9, "Â§eplay.orerun.ovh");
 		
 		scorebaordMap.put(player, sb);
 		
@@ -380,7 +449,18 @@ public class Main extends JavaPlugin{
 		if(isState(GameState.PLAYING)) {
 			player.teleport(getRandomPlayer());
 			player.setGameMode(GameMode.SPECTATOR);
-			player.sendMessage("§7[§eOreRun§7]§rLe jeu a déja demarré !");
+			player.sendMessage("Â§7[Â§eOreRunÂ§7]Â§rLe jeu a dÃ©ja demarrÃ© !");
+		}
+	}
+	
+	public void ScoreboardUpdateBorder() {
+		World world = Bukkit.getWorld(worldname);
+		WorldBorder wb = world.getWorldBorder();
+		for(Player player : getPlayers()) {
+			if(scorebaordMap.containsKey(player)) {
+				ScoreboardSign sb = scorebaordMap.get(player);
+				sb.setLine(7, "Border : "+(int) wb.getSize());
+			}
 		}
 	}
 	
@@ -397,28 +477,44 @@ public class Main extends JavaPlugin{
 		for(Teams team : getTeams()) {
 			player.getInventory().addItem(team.getIcon());
 		}
-		getTM().addPlayer(player, getTM().randomTeam(player));
+		
+		ItemStack lobbyitem = new ItemStack(Material.COMPASS, 1);
+		ItemMeta IM = lobbyitem.getItemMeta();
+		IM.setDisplayName("Lobby!");
+		lobbyitem.setItemMeta(IM);
+		player.getInventory().setItem(8, lobbyitem);
+		//getTM().addPlayer(player, getTM().randomTeam(player));
 		
 		// Look for LaunchGame
 		PrepareGame();
 	}
 		
-		
-	
 	public void PlayerSetupGame(Player player) {
 		Teams playerTeam = getTM().searchPlayerTeam(player);
 		if(playerTeam == null) {
 			getTM().randomTeam(player);
 			playerTeam = getTM().searchPlayerTeam(player);
 		}
+		player.setFireTicks(0);
 		player.teleport(playerTeam.getSpawn());
 		player.getInventory().clear();
+		//clear player armor
+		ItemStack[] emptyArmor = new ItemStack[4];
+		for(int i=0 ; i<emptyArmor.length ; i++){
+			emptyArmor[i] = new ItemStack(Material.AIR);
+		}
+		player.getInventory().setArmorContents(emptyArmor);
 		player.setFoodLevel(20);
 		player.setHealth(20);
 		player.setExp(0f);
 		player.setGameMode(GameMode.SURVIVAL);
 		player.updateInventory();
-		title.sendTitle(player, "§7Launching the game !", "§eTeleporting...", 20);
+		for(PotionEffect effect : player.getActivePotionEffects())
+		{
+			player.removePotionEffect(effect.getType());
+		}
+		player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 999999, 1), false);
+		title.sendTitle(player, "Â§7Launching the game !", "Â§eTeleporting...", 20);
 	}
 	
 	public void onPlayerQuit(PlayerQuitEvent event) {
@@ -428,19 +524,29 @@ public class Main extends JavaPlugin{
 			removePlayer(player);
 		}
 		
+		for(Teams team : Teams) {
+			if(team.HavePlayer(player)) {
+				team.removePlayer(player);
+			}
+		}
+		
+		if(scorebaordMap.containsKey(player)) {
+			ScoreboardSign lastscore = scorebaordMap.get(player);
+			lastscore.sdestroy();
+		}
+		
 		ReturnLobby(false);
 	}
 	
 	// Item
 	
 	public double getItemPoint(ItemStack item) {
-		double returnvalue = 0.0;
-		ConfigurationSection PointSection = cfg.getConfigurationSection("Points");
-		Set<String> ItemsCFG = cfg.getConfigurationSection("Points").getKeys(false);
-		for(String s : ItemsCFG) {
-			if(s == String.valueOf(item.getType().name())) {
-				System.out.println(s == String.valueOf(item.getType().name()) + " x"+PointSection.getDouble(s));
-				returnvalue = PointSection.getDouble(s);
+		double returnvalue = 0;
+		for(String s : getConfig().getStringList("Points.Items")) {
+			//String itemname = s.split(":")[0];
+			Double itempoint = Double.valueOf(s.split(":")[1]);
+			if(s.contains(item.getType().name())) {
+				returnvalue = itempoint;
 				break;
 			}
 		}
@@ -499,7 +605,7 @@ public class Main extends JavaPlugin{
 			File worldFile = new File(world.getName());
 			worldUtils.deleteWorld(worldFile);
 			
-			World copyworld = Bukkit.getWorld("copy"+world.getName());
+			World copyworld = Bukkit.getWorld("copy"+worldname);
 			try {
 				File copyworldFile = null;
 				if(copyworld != null && copyworld.getWorldFolder() != null) {					
@@ -513,6 +619,12 @@ public class Main extends JavaPlugin{
 	}
 	
 	public void ResetAllTimers() {
+		for(Entry<Player, ScoreboardSign> scoreb : scorebaordMap.entrySet()) {
+			if(scoreb.getKey() != null && scoreb.getValue() != null) {	
+				String timerdate = new SimpleDateFormat("mm:ss").format(0*1000);
+				scoreb.getValue().setLine(1, "Time : "+timerdate);
+			}
+		}
 		BukkitRunnable gameCycle = getGameCycle();
 		if(gameCycle != null) {
 			gameCycle.cancel();
@@ -529,6 +641,20 @@ public class Main extends JavaPlugin{
 			setFinish(null);
 		}
 	}
+	
+	/*
+    Credit: https://bukkit.org/threads/remove-dropped-items-on-ground.100750/
+     */
+    private void removeAllDroppedItems() {
+        World world = Bukkit.getServer().getWorld(worldname);//get the world
+        List<Entity> entList = world.getEntities();//get all entities in the world
+
+        for(Entity current : entList) {//loop through the list
+            if (current instanceof Item) {//make sure we aren't deleting mobs/players
+                current.remove();//remove it
+            }
+        }
+    }
 
 	public BukkitRunnable getGameCycle() {
 		return GameCycle;
@@ -552,5 +678,13 @@ public class Main extends JavaPlugin{
 
 	public void setFinish(BukkitRunnable finish) {
 		Finish = finish;
+	}
+
+	public String getServerIP() {
+		return ServerIP;
+	}
+
+	public void setServerIP() {
+		ServerIP = new Report().getip();
 	}
 }

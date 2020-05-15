@@ -1,5 +1,6 @@
 package fr.kinj14.orerun.Tasks;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -25,7 +26,7 @@ public class GameCycle extends BukkitRunnable {
 		int timer = main.cfg.getInt("Timers.GameTime");
 		this.defaulttimer = main.cfg.getInt("Timers.GameTime");
 		this.timer = timer;
-		Steps = main.getConfig().getStringList("Timers.Steps");;
+		Steps = main.getConfig().getStringList("Timers.Steps");
 	}
 	
 	public Integer getSecondsFromStep(String Step) {
@@ -60,8 +61,13 @@ public class GameCycle extends BukkitRunnable {
 			}
 		}
 		
+		if(main.cfg.getInt("Timers.ChestTime") == timer) {
+			main.createChest();
+		}
+		
 		for(Entry<Player, ScoreboardSign> scoreb : main.scorebaordMap.entrySet()) {
-			scoreb.getValue().setLine(1, "Time : "+timer+"s");
+			String timerdate = new SimpleDateFormat("mm:ss").format(timer*1000);
+			scoreb.getValue().setLine(1, "Game : "+timerdate);
 		}
 		
 		if(main.isState(GameState.PREFINISH) || main.isState(GameState.WAITING)) {
@@ -69,8 +75,9 @@ public class GameCycle extends BukkitRunnable {
 			cancel();
 		}
 		
+		main.ScoreboardUpdateBorder();
+		
 		if(timer == 0) {
-			Bukkit.broadcastMessage("§7[§eOreRun§7]§rEquality!");
 			main.checkWin();
 			main.setGameCycle(null);
 			cancel();
