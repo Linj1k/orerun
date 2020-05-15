@@ -31,7 +31,7 @@ Locations:
 Timers:
   StartTime: 120
   GameTime: 2400
-  ChestTime: 2350
+  ChestTime: 1200
   #Time (Based: GameTime), Remove Block, SmoothDelay
   Steps:
     - "600, 65, 5"
