@@ -1,0 +1,97 @@
+#--Plugin--
+plugin-initialization: "OreRun initialization in progress..."
+plugin-disable: "OreRun is Disable !"
+
+#--Motd--
+server-motd-lobby: |-
+  &3                   &aOreRun&r [&c1.12&r/&c1.15&r]
+  &3                &e≫ Waiting for players! ≪
+
+server-motd-game: |-
+  &3                   &aOreRun&r [&c1.12&r/&c1.15&r]
+  &3                  &e≫ The game is in progress! ≪
+#--World--
+world-destroyoldworld: "&6Attempt to suppress the old world!"
+world-unloadoldworld: "&6Unload Old World..."
+world-generatenewworld: "&6Generate new world..."
+
+#--GameState--
+
+#GameState-Start
+gamestate-start: "&cStart:"
+gamestate-start-gamestartmsg: "§6The game starts in &e {time} &6s !"
+gamestate-start-enoughplayers: "There are not enough players !"
+gamestate-start-teamcount: "The number of ready team is not valid !"
+gamestate-start-taunchinggame: "&7Launching the game !"
+gamestate-start-teleporting: "&eTeleporting..."
+#GameState-GameCycle
+gamestate-gamecycle: "&cGame:"
+gamestate-gamecycle-border: "&rThe border size set to {blocks} blocks!"
+gamestate-gamecycle-pvpactivate: "&4PVP is activate &r(You no longer have a life!) &4!"
+gamestate-gamecycle-pvpdesactivate: "&4PVP is desactivate!"
+gamestate-gamecycle-nofallactivate: "&4Fall Damage is desactivate!"
+gamestate-gamecycle-nofalldesactivate: "&4Fall Damage is activate!"
+gamestate-gamecycle-instantingotactivate: "&4InstantIngot is activate!"
+gamestate-gamecycle-instantingotdesactivate: "&4InstantIngot is desactivate!"
+gamestate-gamecycle-instantingotfortuneactivate: "&4InstantIngot(Fortune) is activate!"
+gamestate-gamecycle-instantingotfortunuedesactivate: "&4InstantIngot(Fortune) is desactivate!"
+gamestate-gamecycle-friendlyfireactivate: "&4FriendlyFire is activate!"
+gamestate-gamecycle-friendlyfiredesactivate: "&4FriendlyFire is desactivate!"
+gamestate-gamecycle-healthregenactivate: "&4Health Regeneration is activate!"
+gamestate-gamecycle-healthregendesactivate: "&4Health Regeneration is desactivate!"
+gamestate-gamecycle-goodluckmsg: "&rGood luck to all !"
+#GameState-Finish
+gameState-finish: "&cFinish:"
+
+#--ScoreBoard--
+scoreboard-players: "&cPlayers:&r"
+scoreboard-border: "&cBorder:&r"
+scoreboard-stats: "&7──▶ Stats ◀──"
+scoreboard-points: "&cPoints:&r"
+scoreboard-life: "&cLife:&r"
+
+#--Teams--
+teams-teamisfull: "&6This {teamcolor}team &6is already full!"
+teams-joinmsg: "&6{playername} join {teamcolor}{teamname} Team &6!"
+teams-leavemsg: "&6{playername} leave {teamcolor}{teamname} Team &6!"
+
+#--Player--
+player-joinmsg: "&r{playername}&a joined the game ! <{playerCount}/{maxPlayers}>"
+player-quitmsg: "&r{playername}&a has left the game ! <{playerCount}/{maxPlayers}>"
+player-gameisstartedmsg: "&rThe game's already started!"
+player-canchangeteammsg: "&rTeam changes have been deactivated !"
+player-reportmsg: "&4{reporter_name} a report {player_name}&r: {Description}"
+
+#--Damage--
+damage-killedby: "&4{playername} killed by {killername} !"
+damage-pvpwait: "&4Please wait for the PVP phase!"
+damage-friendlyfire: "&4You cannot attack a teammate..."
+
+#--Items--
+items-setup: "Setup Game!"
+items-lobby: "Lobby!"
+items-jointeam: "Join {teamname} team!"
+
+#--Win--
+win-equality: "Equality!"
+win-lobby: "&eLobby..."
+win-won: "won !"
+win-points: "Points"
+win-losemsg: "&rYou lose ..."
+
+#--Chat--
+chat-global: "&7Global"
+chat-team: "Team"
+
+#--Commands--
+commands-report-invalidreason: "&4Please enter a reason!"
+commands-report-invalidplayer: "&4The player doesn't exist!"
+commands-canchangeteam-activated: "&6Team changes have been activated !"
+commands-canchangeteam-deactivated: "&6Team changes have been deactivated !"
+commands-restartgame: "&6The game is restarting !"
+commands-minplayers: "&6The minimum players setting has been changed to {count}"
+commands-invalideminplayers: "&4Number must be greater than 0!"
+
+#--Others--
+others-depositchest: "&rThe Deposit Chest appeared in"
+others-teamloaded: "teams is loaded !"

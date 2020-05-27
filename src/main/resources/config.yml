@@ -1,0 +1,77 @@
+General:
+  CheckForUpdates: true #true = CheckForUpdates is activate
+  Lobby_WorldName: "orerun" #name of the world for the lobby
+  MinPlayers: 2 #Number of players to launch the game
+  PlayerLife: 3 #Number of lives at game launch
+  ChatFormat: "{DisplayName}: {Message}"
+  NoFallDamage: false #true = Fall Damage is activate
+  EnableHealthRegen: true #true = Natural health regeneration is activate
+  FriendlyFire: false #true = FriendlyFire is activate
+  InstantIngot: false #true = InstantIngot is activate
+  InstantIngotFortune: false #true = InstantIngotFortune is activate
+  teams:
+    red:
+      name: "Red"
+      color: "&c"
+      item: "minecraft:banner/1"
+      MaxPlayers: 2
+    blue:
+      name: "Blue"
+      color: "&9"
+      item: "minecraft:banner/12"
+      MaxPlayers: 2
+    yellow:
+      name: "Yellow"
+      color: "&e"
+      item: "minecraft:banner/11"
+      MaxPlayers: 2
+
+Locations:
+  Lobby: 210.495, 149, 274.458, 178.9f, 0f
+  GameCenter: 0, 0, 0, 0f, 0f
+  DepositChest: 0, 64, 0, 90f, 1.6f
+
+Timers:
+  StartTime: 15 #Seconds
+  GameTime: 40 #Minutes
+  PVPTime: 25 #Minutes
+  ChestTime: 20 #Minutes
+  #Time (Based: GameTime - Minutes), Remove Block, SmoothDelay
+  #Example: -"30, 75, 5" (30 minutes, 75 remove, 5 delay)
+  Steps:
+    - "5, 20, 5"
+    - "10, 65, 5"
+    - "20, 55, 5"
+    - "30, 75, 5"
+
+WorldBorder:
+  LobbySize: 300
+  GameSize: 300
+  DamageAmount: 0.5
+  DamageBuffer: 1
+  WarningBlock: 15
+
+Points:
+  #Example: "COAL:30" COAL
+  Items: #ID:POINT
+    - "COAL:30"
+    - "IRON_INGOT:150"
+    - "GOLD_INGOT:200"
+    - "DIAMOND:400"
+    - "EMERALD:550"
+
+
+#-- PLUGIN SUPPORT --#
+
+# BungeeCord support
+BungeeCord:
+  Support: false
+  MainHub: "lobby1"
+
+# Vault support for economy
+Econ:
+  Enabled: false
+  # Econ gained when a player kills another
+  OnKill: 5.0
+  # Econ gained when a player wins the game
+  OnWin: 25.0

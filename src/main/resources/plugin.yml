@@ -1,0 +1,65 @@
+name: OreRun
+version: 1.0
+author: kinj14
+main: fr.kinj14.orerun.Main
+api-version: 1.12
+website: https://orerun.ovh
+commands:
+  canchangeteam:
+    description: Used to activate/deactivate team changes.
+    permission: orerun.canchangeteam
+    usage: "Usage: /canchangeteam false/true"
+  restartgame:
+    description: Allows you to restart the game but not the map.
+    permission: orerun.restartgame
+  bug:
+    description: Report a bug on the OreRun plugin.
+    usage: "Usage: /bug Args"
+  report:
+    description: Report a player (/report PlayerName Description)
+    usage: "Usage: /report [player] Args"
+  lobby:
+    description: Return to lobby
+  gm:
+    description: Gamemode command
+    permission: orerun.gamemode
+    usage: "Usage: /gm [player]"
+  feed:
+    description: Allows you to add food
+    permission: orerun.feed
+    usage: "Usage: /feed [player]"
+  heal:
+    description: Allows you to add heal
+    permission: orerun.heal
+    usage: "Usage: /heal [player]"
+  pvp:
+    description: Activate/Desactive PVP
+    permission: orerun.pvp
+    usage: "Usage : /pvp true/false"
+  nofall:
+    description: Activate/Desactive Fall Damage
+    permission: orerun.nofall
+    usage: "Usage : /nofall true/false"
+  instantingot:
+    description: Activate/Desactive Instant Ingot
+    permission: orerun.instantingot
+    usage: "Usage : /instantingot true/false"
+  instantingotfortune:
+    description: Activate/Desactive Instant Ingot Fortune
+    permission: orerun.instantingotfortune
+    usage: "Usage : /instantingotfortune true/false"
+  friendlyfire:
+    description: Activate/Desactive friendlyfire
+    permission: orerun.friendlyfire
+    usage: "Usage : /friendlyfire true/false"
+  healthregen:
+    description: Activate/Desactive HealthRegen
+    permission: orerun.healthregen
+    usage: "Usage : /healthregen true/false"
+  minplayer:
+    description: Set Minimum Players
+    permission: orerun.minplayer
+    usage: "Usage : /minplayer [number]"
+permissions:
+  canModifySettings:
+    description: Gives access to Setup Game
