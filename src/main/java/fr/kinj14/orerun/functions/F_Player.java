@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.Map.Entry;
 
 import fr.kinj14.orerun.enums.OreRun_Lang;
+import fr.kinj14.orerun.gui.GUI_GameSetup;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -162,7 +163,7 @@ public class F_Player {
 		//getTM().addPlayer(player, getTM().randomTeam(player));
 
 		if(player.hasPermission("canModifySettings")){
-			player.getInventory().setItem(7, new F_SetupItem().GetItem());
+			player.getInventory().setItem(7, new GUI_GameSetup(player).GetItem());
 		}
 		
 		// Look for LaunchGame

@@ -49,7 +49,6 @@ public class Main extends JavaPlugin {
 	public fr.kinj14.orerun.functions.F_World F_World;
 	public fr.kinj14.orerun.functions.F_Config F_Config;
 	public fr.kinj14.orerun.functions.F_FireWorks OFireWorks = new F_FireWorks();
-	public fr.kinj14.orerun.functions.F_SetupItem F_SetupItem;
 
 	//Config
 	public String Lobby_WorldName;
@@ -104,7 +103,6 @@ public class Main extends JavaPlugin {
 		F_Config = new F_Config();
 		f_player = new F_Player();
 		F_World = new F_World();
-		F_SetupItem = new F_SetupItem();
 
 		//load the Language
 		OreRun_Files lang = OreRun_Files.LANG;
