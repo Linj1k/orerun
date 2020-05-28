@@ -61,9 +61,10 @@ public class BlockListeners implements Listener {
 			          ItemCount = 4;
 			        } 
 				}
-				Location blockLocation = block.getLocation().add(0.35,0.35,0.35);
+				Location blockLocation = block.getLocation().add(0.15,0.15,0.15);
 				block.getWorld().dropItemNaturally(blockLocation, new ItemStack(ingot, ItemCount));
 				block.setType(Material.AIR);
+				p.giveExp(event.getExpToDrop());
 				event.setCancelled(true);
 				return true;
 			}
